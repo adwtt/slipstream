@@ -1,0 +1,30 @@
+{
+  "manifest_version": 2,
+  "name": "Slipstream",
+  "description": "Too many streams? Problem solved.",
+  "version": "0.0.1",
+  "icons": {
+    "128": "logo.png",
+    "128": "logo.png",
+    "128": "logo.png",
+    "128": "logo.png"
+  },
+  "permissions": [
+    "tabs"
+  ],
+  "browser_action": {
+    "default_icon": { 
+      "16": "logo.png",
+      "48": "logo.png",
+     "128": "logo.png" 
+    },
+    "default_title": "Loading streams...",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": [
+      "slipstream.js"
+    ],
+    "persistent": true
+  }
+}
