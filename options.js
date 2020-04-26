@@ -29,13 +29,15 @@ function restore_options() {
     document.getElementById('theme').value = options.theme;
 
     if (options.theme === "dark") {
-      document.getElementById('status').innerText = "🤘";
-      document.getElementById('logo').setAttribute('src', 'logo_large_dark.svg')
       document.documentElement.setAttribute('data-theme', 'dark')
+      document.getElementById('logo').setAttribute('src', 'logo_large_dark.svg')
+      document.getElementById('status').innerText = "🤘";
+      document.getElementById('author').innerText = "Courtesy of Covid © 2020";
     } else {
-      document.getElementById('status').innerText = "🎶";
-      document.getElementById('logo').setAttribute('src', 'logo_large.svg')
       document.documentElement.setAttribute('data-theme', 'light')
+      document.getElementById('logo').setAttribute('src', 'logo_large.svg')
+      document.getElementById('status').innerText = "🎶";
+      document.getElementById('author').innerText = "Social Distance Squad © 2020";
     }
   });
 }

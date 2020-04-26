@@ -7,7 +7,6 @@ chrome.runtime.onInstalled.addListener((e) => {
     let streams = tabs.filter(tab => tab.audible === true);
 
     streamList = streams;
-    console.log(streamList)
 
     chrome.browserAction.setBadgeBackgroundColor({color: '#000'});
     chrome.browserAction.setBadgeText({text: streamList.length.toString()});
@@ -102,7 +101,6 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
   // Handle cool sites like youtube that don't load the title for a second.
   // This avoids having the stream appear generically as "Youtube" in the UI
   if (changeInfo.title) {
-    console.log("Yoooo")
     chrome.tabs.query({audible: true}, tabs => {
       streamList = tabs;
       chrome.runtime.onConnect.addListener(port => {
@@ -117,8 +115,6 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
 chrome.tabs.onRemoved.addListener((id, removeInfo) => {
   // Filter the closed tab id from our list of streaming tabs
   streamList = streamList.filter(stream => stream.id !== id)
-
-  console.log("Stream list after tab closing: ", streamList)
 
   // If there's only one tab left, unmute it and refresh the streamList
   if (streamList.length == 1) {
