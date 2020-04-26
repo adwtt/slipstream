@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slipstream – Options</title>
+  <style>
+    body {
+      margin: 0;
+      min-width: 100vw;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #FDE2E2;
+      font-size: 16px;
+    }
+      body > *:not(:last-child) {
+        margin-bottom: 16px;
+      }
+      a {color: unset; text-decoration: unset;}
+    #container {
+      display: flex;
+      flex-direction: column;
+      width: 360px;
+      padding: 16px;
+      background: #fff;
+      border-radius: 4px;
+      border: 3px solid #111;
+      box-sizing: border-box;
+    }
+      #container > * {
+        margin-top: 0px;
+        margin-bottom: 16px;
+      }
+    h2 {
+      text-align: center;
+      margin-bottom: 24px !important;
+    }
+    label {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      font-weight: 500;
+      padding: 0 0 8px 0;
+    }
+    input[type="checkbox"] {
+      font-size: 16px;
+    }
+    button, #status {
+      margin-bottom: 0px !important;
+      border-top: 1px solid #eee;
+      box-sizing: border-box;
+    }
+    button {
+      outline: none;
+      height: 40px;
+      background: #FFB6B6;
+      border-radius: 4px;
+      border: 3px solid #111;
+      color: #000;
+      font-weight: 600;
+      font-size: 14px;
+    }
+      button:hover {
+        background: #000;
+        color: #fff;
+        cursor: pointer;
+      }
+      button:disabled { display: none; }
+    #status {
+      font-size: 20px;
+      line-height: 39px;
+      text-align: center;
+    }
+    #status.hidden {display: none;}
+    #author {
+      font-size: 12px;
+      color: #775c5c;
+    }
+  </style>
+</head>
+<body>
+  <img style="width: 128px" src="options_logo.png" />
+  <div id="container">
+    <label>
+      Pin streaming tabs automatically?
+      <input type="checkbox" id="pinTabs">
+    </label>
+    <button id="saveOptions" disabled>Save Changes</button>
+    <div id="status">🎶</div>
+  </div>
+  <a href="mailto:andrew@adwtt.com"><div id="author">Courtesy of Covid © 2020</div></a>
+  <script src="options.js"></script>
+</body>
+</html>

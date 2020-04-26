@@ -3,6 +3,7 @@
   "name": "Slipstream",
   "description": "Too many streams? Problem solved.",
   "version": "0.0.1",
+  "options_page": "options.html",
   "icons": {
     "128": "logo.png",
     "128": "logo.png",
@@ -24,7 +25,7 @@
   },
   "background": {
     "scripts": [
-      "slipstream.js"
+      "background.js"
     ],
     "persistent": true
   }

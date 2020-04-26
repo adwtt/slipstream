@@ -35,7 +35,7 @@ li {
   justify-content: space-between;
 }
   li:last-child { border-bottom: none; }
-  li.viewing { background: #333; }
+  li.viewing { background: #333;}
   li.active { border-left: 4px solid #FFB6B6; padding: 0 0 0 8px; }
 
 li:hover {
@@ -90,21 +90,32 @@ li:hover .streamTitle {
   align-items: center;
 }
 
-#Mute, #Save, #Load { 
+#Mute, #Save, #Load, #Close { 
   color: #AACFCF; 
   opacity: .75;
 }
   #Mute.unmuted:hover,
   #Save.unsaved:hover,
-  #Load:hover  {
+  #Load:hover,
+  #Close:hover  {
     cursor: pointer;
     opacity: 1;
     text-decoration: underline;
   }
   #Mute.muted,
   #Save.saved {
-    opacity: .5;
+    opacity: .32;
     text-decoration: none;
+  }
+
+  #Close {
+    display: flex;
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    background: #151515;
+    color: #c10707;
   }
 
 #Quote {
@@ -114,6 +125,9 @@ li:hover .streamTitle {
   justify-content: center;
   align-items: center;
 }
+  #Quote:hover {
+    cursor: pointer;
+  }
 
 #SavedList {
   margin: 4px 4px;
