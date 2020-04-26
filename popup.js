@@ -1,14 +1,20 @@
-chrome.storage.sync.get(["pinTabs"], options => {
+chrome.storage.sync.get(null, options => {
 
   // Grab a ref to the Streams element and create a variable for storing the active tab
   const Streams = document.getElementById("Streams");
   var activeTab = null,
-      pinTabs = options.pinTabs;
+      pinTabs = options.pinTabs,
+      theme = options.theme;
 
   // Store a reference to the current tab so we can highlight the appropriate stream in our UI
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     activeTab = tabs[0];
   });
+
+  // Set the UI Theme
+  if (theme != undefined) {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
 
   // Connect to the messaging port...
   const port = chrome.runtime.connect({ name: 'slipstream' });
@@ -25,10 +31,11 @@ chrome.storage.sync.get(["pinTabs"], options => {
       // If there aren't any streams, generate a music quote.
       if (message.streams.length === 0) {
         Streams.appendChild(musicQuote())
-        Streams.appendChild(savedStreamsList());
+        Streams.appendChild(savedStreamsList(Streams));
       } 
       // Otherwise, start building the UI.
       else {
+
         // Loop through the streams and build the popup UI accordingly
         message.streams.forEach(stream => {
           //console.log(stream)
@@ -50,6 +57,7 @@ chrome.storage.sync.get(["pinTabs"], options => {
           Streams.appendChild(streamElement)
         })
         Streams.appendChild(closeAllButton(streams))
+        Streams.prepend(gradientBar())
       }
     }
   });
@@ -107,6 +115,20 @@ chrome.storage.sync.get(["pinTabs"], options => {
     return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
   }
 
+  const gradientBar = () => {
+    let gradientBar = document.createElement('div');
+    gradientBar.id = "GradientBar"
+
+    // Loop through the open tabs to see if any are making sound (aka streaming)
+    chrome.tabs.query({audible: true, muted: false}, tabs => {
+      // If so, animate the gradient bar
+      if (tabs.length > 0) {
+        gradientBar.className = "playing"
+      }
+    })
+
+    return gradientBar;
+  }
   const actionsBar = (streams) => {
     let actionsBar = document.createElement('div')
 
@@ -123,7 +145,7 @@ chrome.storage.sync.get(["pinTabs"], options => {
     return actionsBar;
   }
 
-  const savedStreamsList = () => {
+  const savedStreamsList = (container) => {
     let savedList = document.createElement('div'),
         actions = document.createElement('div'),
         title = document.createElement('h3'),
@@ -177,6 +199,7 @@ chrome.storage.sync.get(["pinTabs"], options => {
       actions.appendChild(title)
       actions.appendChild(load)
       savedList.appendChild(actions)
+
       savedList.appendChild(list)
     });
 
@@ -273,6 +296,7 @@ chrome.storage.sync.get(["pinTabs"], options => {
         streamIsOpen = false;
 
     streamIcon.className = "favIcon"
+    streamIcon.title = "View Stream"
     streamIcon.setAttribute("style", "background-image: url(" + stream.favIconUrl + ");")
 
 
@@ -301,7 +325,6 @@ chrome.storage.sync.get(["pinTabs"], options => {
   }
 
   const streamTitle = (stream, streams, tabId, clickToMute = true) => {
-    console.log(streams)
     let streamTitle = document.createElement('div'),
     streamIsOpen = false;
 
@@ -352,12 +375,13 @@ chrome.storage.sync.get(["pinTabs"], options => {
     let streamState = document.createElement('div');
 
     streamState.className = "streamState"
-    streamState.title = "Click to stream"
 
     if (stream.mutedInfo.muted === false) {
       streamState.innerText = "🔊"
+      streamState.title = "Playing"
     } else {
       streamState.innerText = "🔇"
+      streamState.title = "Muted"
     }
 
     streamState.addEventListener('click', () => {

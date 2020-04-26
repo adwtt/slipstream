@@ -1,8 +1,11 @@
 // Saves options to chrome.storage
 function save_options() {
-  var pinTabs = document.getElementById('pinTabs').checked;
+  var pinTabs = document.getElementById('pinTabs').checked,
+      theme = document.getElementById('theme').value;
+  console.log(theme)
   chrome.storage.sync.set({
     pinTabs: pinTabs,
+    theme: theme
   }, function() {
     // Update status to let user know options were saved.
     var status = document.getElementById('status');
@@ -17,16 +20,19 @@ function save_options() {
 function restore_options() {
   // Use default value color = 'red' and likesColor = true.
   chrome.storage.sync.get({
-    pinTabs: true
+    pinTabs: true,
+    theme: "dark"
   }, function(options) {
+    console.log(options)
     document.getElementById('pinTabs').checked = options.pinTabs;
+    document.getElementById('theme').value = options.theme;
   });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
 document.getElementById('saveOptions').addEventListener('click', save_options);
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('input').forEach(element => {
+  document.querySelectorAll('input, select').forEach(element => {
     element.addEventListener("click", () => {
       document.getElementById("saveOptions").disabled = false;
       document.getElementById("status").className = "hidden";

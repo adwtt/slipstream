@@ -1,6 +1,36 @@
+:root {
+  --background: #000000;
+  --midground: #252525;
+  --foreground: #151515;
+  --border: #333;
+  --text: #cccccc;
+
+  --actions: #AACFCF;
+  --active: #FFB6B6;
+  --closeText: #D80202;
+
+  --closeBackground: var(--background);
+  --quoteBackground: var(--midground);
+}
+
+[data-theme="light"] {
+  --background: #FDE2E2;
+  --midground: #FCF8F8;
+  --foreground: #ffffff;
+  --border: #EAD9D9;
+
+  --text: #000000;
+  --actions: #8A3636;
+  --active: #AACFCF;
+  --closeText: #8A3636;
+
+  --closeBackground: #FFB6B6;
+  --quoteBackground: #000;
+}
+
 html {
-  background: #222;
-  color: #ccc;
+  background: var(--background);
+  color: var(--text);
   padding: 0;
   margin: 0;
   user-select: none;
@@ -19,41 +49,51 @@ ul {
   width: 100%;
   display: flex;
   flex-direction: column;
-
 }
 
 li {
-  padding: 0 0 0 12px;
-  border-bottom: 1px solid #555;
-
-  transition: background .1s ease-in-out;
+  padding: 0 0 0 16px;
+  border-top: 1px solid var(--border);
 
   box-sizing: border-box;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-}
-  li:last-child { border-bottom: none; }
-  li.viewing { background: #333;}
-  li.active { border-left: 4px solid #FFB6B6; padding: 0 0 0 8px; }
 
-li:hover {
-  background: #333;
-  cursor: pointer;
+  background: var(--foreground);
 }
+  li:first-child { border-top: none; }
+  li:last-of-type { border-bottom: none }
+  li.active { 
+    box-shadow: inset 6px 0 0  var(--active);
+  }
+
+  li:hover { 
+    background: var(--foreground);
+    cursor: pointer; 
+  }
+  //li.viewing, li.viewing:hover { background: #353535;}
+
+  li.muted { background: var(--midground);}
+  li.muted > * {opacity: .56;}
+  li.muted:hover > * { opacity: 1; }
+  li.muted:hover .streamState { opacity: .56; }
+
 
 .favIcon {
   width: 16px;
-  height: 16px;
-  background-size: contain;
+  height: 48px;
+  background-size: 16px;
+  background-repeat: no-repeat;
+  background-position: center;
   margin-right: 8px;
 }
 
 .favIcon:hover {
-  transform: scale(1.5);
+  transform: scale(1.35);
   cursor: pointer;
-  transition: transform .15s ease-in-out;
+  transition: transform .15s ease-out;
 }
 
 .streamTitle {
@@ -80,18 +120,18 @@ li:hover .streamTitle {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  background: #111;
 }
-
-#Actions > div {
-  height: 40px;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-}
+  #Actions > div {
+    height: 48px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+  }
 
 #Mute, #Save, #Load, #Close { 
-  color: #AACFCF; 
+  color: var(--actions); 
+  font-weight: 600;
+  letter-spacing: .25px;
   opacity: .75;
 }
   #Mute.unmuted:hover,
@@ -110,42 +150,67 @@ li:hover .streamTitle {
 
   #Close {
     display: flex;
-    height: 40px;
+    height: 48px;
     justify-content: center;
     align-items: center;
     width: 100%;
-    background: #151515;
-    color: #c10707;
+    background: var(--closeBackground);
+    color: var(--closeText);
   }
 
 #Quote {
-  height: 40px;
+  height: 48px;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
+  background-color: var(--quoteBackground);
 }
   #Quote:hover {
     cursor: pointer;
   }
 
-#SavedList {
-  margin: 4px 4px;
-  border-radius: 4px;
-  background: #333;
-}
-
 #SavedActions {
-  padding: 0 12px;
+  padding: 0 16px;
 
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
 }
-  #SavedActions h3 {font-weight: 500;}
-
-  #SavedList li {
-    border-top: 1px solid #555;
+  #SavedActions h3 {
+    font-weight: 400;
+    opacity: .64;
+  }
+  #SavedList ul {
+    margin: 0 16px 16px 16px;
+    width: unset;
+    background: var(--midground);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  #SavedList li {background: var(--midground);}
+  #SavedList li:not(:first-child) {
+    border-top: 1px solid var(--border);
     border-bottom: none;
   }
+
+  #GradientBar {
+    height: 6px;
+    opacity: .5;
+    background: #d4abde;
+  }
+    #GradientBar.playing {
+      opacity: 1;
+      background: linear-gradient(270deg, #ffb6b6, #d4abde, #aacfcf);
+      background-size: 300% 300%;
+      animation: playGradient 6s ease infinite;
+      transition: background-size .25s ease-in-out;
+    }
+    @keyframes playGradient {
+        0%{background-position:0% 50%}
+        50%{background-position:100% 50%}
+        100%{background-position:0% 50%}
+    }
