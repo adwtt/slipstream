@@ -5,13 +5,14 @@ function save_options() {
   console.log(theme)
   chrome.storage.sync.set({
     pinTabs: pinTabs,
-    theme: theme
+    theme: theme,
   }, function() {
     // Update status to let user know options were saved.
     var status = document.getElementById('status');
     document.getElementById("saveOptions").disabled = true;
     status.className = "";
     status.innerText = '🤘';
+    location.reload()
   });
 }
 
@@ -21,11 +22,21 @@ function restore_options() {
   // Use default value color = 'red' and likesColor = true.
   chrome.storage.sync.get({
     pinTabs: true,
-    theme: "dark"
+    theme: "dark",
   }, function(options) {
     console.log(options)
     document.getElementById('pinTabs').checked = options.pinTabs;
     document.getElementById('theme').value = options.theme;
+
+    if (options.theme === "dark") {
+      document.getElementById('status').innerText = "🤘";
+      document.getElementById('logo').setAttribute('src', 'logo_large_dark.svg')
+      document.documentElement.setAttribute('data-theme', 'dark')
+    } else {
+      document.getElementById('status').innerText = "🎶";
+      document.getElementById('logo').setAttribute('src', 'logo_large.svg')
+      document.documentElement.setAttribute('data-theme', 'light')
+    }
   });
 }
 document.addEventListener('DOMContentLoaded', restore_options);

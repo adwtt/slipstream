@@ -154,53 +154,56 @@ chrome.storage.sync.get(null, options => {
 
     // Load the saved playlist from sync storage
     chrome.storage.sync.get(['streamList'], result => {
-      let streams = JSON.parse(result.streamList),
+      if (result.streamList.length > 2) {
+        let streams = JSON.parse(result.streamList),
           list = document.createElement('ul');
 
-      // First, set up the "load all" event
-      load.addEventListener("click", () => {
-        // Loop through the saved streams
-        streams.forEach(stream => {
-          // Check if any of the stream is already open
-          chrome.tabs.query({url: stream.url}, results => {
-            // If so, close any open instances
-            if (results.length !== 0) {
-              results.forEach(tab => {
-                chrome.tabs.remove(tab.id)
-              })
-            }
-            // Then create a new instance of the tab
-            chrome.tabs.create({url: stream.url, pinned: pinTabs})
+        // First, set up the "load all" event
+        load.addEventListener("click", () => {
+          // Loop through the saved streams
+          streams.forEach(stream => {
+            // Check if any of the stream is already open
+            chrome.tabs.query({url: stream.url}, results => {
+              // If so, close any open instances
+              if (results.length !== 0) {
+                results.forEach(tab => {
+                  chrome.tabs.remove(tab.id)
+                })
+              }
+              // Then create a new instance of the tab
+              chrome.tabs.create({url: stream.url, pinned: pinTabs})
+            })
           })
         })
-      })
-      // Loop through the streams and start building out the list ui
-      streams.forEach(stream => {
-        let streamElement = document.createElement('li');
-        streamElement.id = stream.id;
+        // Loop through the streams and start building out the list ui
+        streams.forEach(stream => {
+          let streamElement = document.createElement('li');
+          streamElement.id = stream.id;
 
-        // If this streaming tab id matches the current tab id, add the viewing class to the element
-        if (stream.id == activeTab.id) { 
-          streamElement.className += " viewing" 
-        }
+          // If this streaming tab id matches the current tab id, add the viewing class to the element
+          if (stream.id == activeTab.id) { 
+            streamElement.className += " viewing" 
+          }
 
-        streamElement.appendChild(streamIcon(stream))
-        streamElement.appendChild(streamTitle(stream, streams, stream.id, false))
+          streamElement.appendChild(streamIcon(stream))
+          streamElement.appendChild(streamTitle(stream, streams, stream.id, false))
+          streamElement.appendChild(deleteStream(stream, streams, stream.id))
 
-        list.appendChild(streamElement)
-      })
+          list.appendChild(streamElement)
+        })
 
-      savedList.id = "SavedList";
-      actions.id = "SavedActions"
-      load.id = "Load"
-      title.innerText = "Saved Streams"
-      load.innerText = "LOAD ALL"
+        savedList.id = "SavedList";
+        actions.id = "SavedActions"
+        load.id = "Load"
+        title.innerText = "Saved Streams"
+        load.innerText = "LOAD ALL"
 
-      actions.appendChild(title)
-      actions.appendChild(load)
-      savedList.appendChild(actions)
+        actions.appendChild(title)
+        actions.appendChild(load)
+        savedList.appendChild(actions)
 
-      savedList.appendChild(list)
+        savedList.appendChild(list)
+      }
     });
 
     return savedList;
@@ -211,16 +214,18 @@ chrome.storage.sync.get(null, options => {
 
     saveButton.id = "Save"
     
-    chrome.storage.sync.get(['streamList'], (result) => {
+    chrome.storage.sync.get(['streamList'], result => {
       let storedStreams = result.streamList,
           currentStreams = JSON.stringify(streams);
-
+        console.log(result.streamList)
       if (streams.length > 0) {
         // Compare the urls in our current streams and the stored streams, returns a bool based on whether everything matches
         //console.log(streams, JSON.parse(storedStreams))
         let match = null;
-        if (streams.length === JSON.parse(storedStreams).length) {
-          match = JSON.parse(storedStreams).every((stream, index) => stream && stream.url == streams[index].url)
+        if (result.streamList.length > 0) {
+          if (streams.length === JSON.parse(storedStreams).length) {
+            match = JSON.parse(storedStreams).every((stream, index) => stream && stream.url == streams[index].url)
+          }
         }
 
         if (match === true) {
@@ -235,7 +240,7 @@ chrome.storage.sync.get(null, options => {
           saveButton.className = "unsaved"
           saveButton.addEventListener("click", () => {
             chrome.storage.sync.set({streamList: currentStreams}, () => {
-              //console.log('Stored value ' + currentStreams);
+              console.log('Stored value ' + currentStreams);
               setTimeout(() => {location.reload()}, 200);
             });
           })
@@ -306,7 +311,7 @@ chrome.storage.sync.get(null, options => {
       if (result[0]) {
         streamIsOpen = true;
         streamData = result[0];
-        console.log(streamData)
+        //console.log(streamData)
         //console.log(streamData.title, " is open now")
       }
 
@@ -353,7 +358,7 @@ chrome.storage.sync.get(null, options => {
         if (result[0]) {
           streamIsOpen = true;
           streamData = result[0];
-          console.log(streamData)
+          //console.log(streamData)
           //console.log(streamData.title, " is open now")
         }
     
@@ -399,6 +404,33 @@ chrome.storage.sync.get(null, options => {
     })
 
     return streamState;
+  }
+  
+  const deleteStream = (stream, streams, tabId) => {
+    let deleteStream = document.createElement('div');
+
+    deleteStream.id = "DeleteStream"
+
+    deleteStream.innerText = "❌"
+    deleteStream.title = "Delete"
+
+
+    deleteStream.addEventListener('click', () => {
+      streams = streams.map(stream => {
+        // Delete the clicked stream from our array of streams
+        if (stream.id !== tabId) {
+          return stream
+        }
+        // And filter out the deleted element (now empty)
+      }).filter(el => el !== undefined)
+
+      chrome.storage.sync.set({streamList: JSON.stringify(streams)}, () => {
+        setTimeout(() => {location.reload()}, 200);
+      })
+
+    })
+
+    return deleteStream;
   }
 
 })

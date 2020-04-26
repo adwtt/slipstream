@@ -108,10 +108,11 @@ li:hover .streamTitle {
   text-decoration: underline;
 }
 
-.streamState {
+.streamState,
+#DeleteStream {
   display: inline-block;
   min-width: 40px;
-  min-height: 20px;
+  line-height: 48px;
   text-align: center;
 }
 
@@ -147,7 +148,6 @@ li:hover .streamTitle {
     opacity: .32;
     text-decoration: none;
   }
-
   #Close {
     display: flex;
     height: 48px;
@@ -180,7 +180,7 @@ li:hover .streamTitle {
 }
   #SavedActions h3 {
     font-weight: 400;
-    opacity: .64;
+    opacity: .56;
   }
   #SavedList ul {
     margin: 0 16px 16px 16px;
@@ -196,6 +196,10 @@ li:hover .streamTitle {
     border-top: 1px solid var(--border);
     border-bottom: none;
   }
+
+  #DeleteStream {opacity: 0;}
+  #SavedList li:hover #DeleteStream { opacity: .4;}
+  #SavedList li:hover #DeleteStream:hover { opacity: 1; cursor: pointer;}
 
   #GradientBar {
     height: 6px;
