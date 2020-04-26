@@ -17,10 +17,9 @@ chrome.runtime.onInstalled.addListener((e) => {
 
 // This is where we listen for tab changes and update the extension state accordingly
 chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
-
+  console.log(changeInfo)
   // We'll be looking out for "audible === true", since those are the only tabs we care about.
   if (changeInfo.hasOwnProperty('audible') || changeInfo.hasOwnProperty('mutedInfo')) {
-    console.log(changeInfo, tab)
 
     // Hand a tab becoming inaudible
     if (changeInfo.audible === false) {
@@ -57,7 +56,7 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
               chrome.tabs.update(tab.id, {muted: false});
             }
           })
-        } 
+        }
         // Otherwise, mute the channel. This stops audible changes in the background from hijacking the audio
         else {
           tabs.forEach(tab => {
@@ -80,6 +79,7 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
         port.postMessage({ streams: streamList});
       })
     } 
+
     // Handle muting/unmuting a tab (technically this happens over in the UI, we're just updating the streamlist and browserAction title)
     else if (changeInfo.mutedInfo) {
       
@@ -94,6 +94,16 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
       })
     }
     chrome.browserAction.setBadgeText({text: streamList.length.toString()});
+  }
+
+  // Handle cool sites like youtube that don't load the title for a second.
+  // This avoids having the stream appear generically as "Youtube" in the UI
+  if (changeInfo.title) {
+    console.log("Yoooo")
+    chrome.tabs.query({audible: true}, tabs => {
+      streamList = tabs;
+      port.postMessage({ streams: streamList});
+    })
   }
 })
 

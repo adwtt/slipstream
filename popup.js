@@ -12,22 +12,23 @@ const port = chrome.runtime.connect({ name: 'slipstream' });
 
 // When we get a message from the background script, kick things off!
 port.onMessage.addListener(message => {
+
   if (message.streams) {
+    let streams = message.streams;
     Streams.innerHTML = "";
+
+    Streams.appendChild(actionsBar(streams))
 
     // If there aren't any streams, generate a music quote.
     if (message.streams.length === 0) {
-      // It'd be really cool if you could save sets of streams and then see them here when you aren't playing anything. Livestream playlists, basically. Just drop message.streams into localStorage and look for it anytime there's nothing playing. Overwrite it anytime someone saves another set.
-      
       Streams.appendChild(musicQuote())
+      Streams.appendChild(savedStreamsList());
     } 
     // Otherwise, start building the UI.
     else {
-      Streams.appendChild(muteButton(message.streams))
-
       // Loop through the streams and build the popup UI accordingly
       message.streams.forEach(stream => {
-        console.log(stream)
+        //console.log(stream)
         let tabId = stream.id
 
         let streamElement = document.createElement('li');
@@ -40,8 +41,8 @@ port.onMessage.addListener(message => {
         }
 
         streamElement.appendChild(streamIcon(stream))
-        streamElement.appendChild(streamTitle(stream, message, tabId))
-        streamElement.appendChild(streamSpeaker(stream, message, tabId))
+        streamElement.appendChild(streamTitle(stream, streams, tabId))
+        streamElement.appendChild(streamSpeaker(stream, streams, tabId))
 
         Streams.appendChild(streamElement)
       })
@@ -88,66 +89,226 @@ const musicQuote = () => {
   return musicQuote;
 }
 
+const getRandomInt = (min, max) => {
+  // This is just for the Quote Generator
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
+const actionsBar = (streams) => {
+  let actionsBar = document.createElement('div')
+
+  actionsBar.id = "Actions"
+
+  if (streams.length > 0) {
+    actionsBar.appendChild(saveStreamsButton(streams))
+    actionsBar.appendChild(muteButton(streams))
+  }
+
+  return actionsBar;
+}
+
+const savedStreamsList = () => {
+  let savedList = document.createElement('div'),
+      actions = document.createElement('div'),
+      title = document.createElement('h3'),
+      load = document.createElement('div')
+
+  savedList.id = "SavedList";
+  actions.id = "SavedActions"
+  load.id = "Load"
+  title.innerText = "Saved Streams"
+  load.innerText = "LOAD ALL"
+
+  actions.appendChild(title)
+  actions.appendChild(load)
+  savedList.appendChild(actions)
+
+  // Load the saved playlist from sync storage
+  chrome.storage.sync.get(['streamList'], result => {
+    let streams = JSON.parse(result.streamList),
+        list = document.createElement('ul');
+
+    // First, set up the "load all" event
+    load.addEventListener("click", () => {
+      // Loop through the saved streams
+      streams.forEach(stream => {
+        // Check if any of the stream is already open
+        chrome.tabs.query({url: stream.url}, results => {
+          // If so, close any open instances
+          if (results.length !== 0) {
+            results.forEach(tab => {
+              chrome.tabs.remove(tab.id)
+            })
+          }
+          // Then create a new instance of the tab
+          chrome.tabs.create({url: stream.url})
+        })
+      })
+    })
+    // Loop through the streams and start building out the list ui
+    streams.forEach(stream => {
+      let streamElement = document.createElement('li');
+      streamElement.id = stream.id;
+
+      // If this streaming tab id matches the current tab id, add the viewing class to the element
+      if (stream.id == activeTab.id) { 
+        streamElement.className += " viewing" 
+      }
+
+      streamElement.appendChild(streamIcon(stream))
+      streamElement.appendChild(streamTitle(stream, streams, stream.id, false))
+
+      list.appendChild(streamElement)
+    })
+    savedList.appendChild(list)
+  });
+
+  return savedList;
+}
+
+const saveStreamsButton = (streams) => {
+  let saveButton = document.createElement('div');
+
+  saveButton.id = "Save"
+  
+  chrome.storage.sync.get(['streamList'], (result) => {
+    let storedStreams = result.streamList,
+        currentStreams = JSON.stringify(streams);
+
+    if (streams.length > 0) {
+      // Compare the urls in our current streams and the stored streams, returns a bool based on whether everything matches
+      //console.log(streams, JSON.parse(storedStreams))
+      let match = null;
+      if (streams.length === JSON.parse(storedStreams).length) {
+        match = JSON.parse(storedStreams).every((stream, index) => stream && stream.url == streams[index].url)
+      }
+
+      if (match === true) {
+        saveButton.innerHTML = "STREAMS SAVED"
+        saveButton.className = "saved"
+      } else {
+        saveButton.innerHTML = "SAVE STREAMS"
+        saveButton.className = "unsaved"
+        saveButton.addEventListener("click", () => {
+          chrome.storage.sync.set({streamList: currentStreams}, () => {
+            //console.log('Stored value ' + currentStreams);
+            setTimeout(() => {location.reload()}, 200);
+          });
+        })
+      }
+    }
+  })
+
+  return saveButton
+}
+
 const muteButton = (streams) => {
-  let muteAll = document.createElement('div'),
-      allMuted = streams.filter(stream => stream.mutedInfo.muted == true) ? true : false;
-  muteAll.id = "Mute"
+  let muteButton = document.createElement('div'),
+      allMuted = streams.every(stream => stream.mutedInfo.muted == true);
 
-  if (allMuted) {
-    muteAll.innerHTML = "🤫 MUTE ALL";
+  muteButton.id = "Mute"
 
-    muteAll.addEventListener("click", () => {
+  if (!allMuted) {
+    muteButton.innerHTML = "MUTE ALL";
+    muteButton.className = "unmuted"
+
+    muteButton.addEventListener("click", () => {
       streams.forEach(stream => {
         chrome.tabs.update(stream.id, {muted: true});
         setTimeout(() => {location.reload()}, 200);
       })
     })
   } else {
-    muteAll.innerHTML = "😶 MUTED";
+    muteButton.innerHTML = "MUTED";
+    muteButton.className = "muted"
   }
 
-  return muteAll
+  return muteButton
 }
 
 const streamIcon = (stream) => {
-  let streamIcon = document.createElement('div')
+  let streamIcon = document.createElement('div'),
+      streamIsOpen = false;
 
   streamIcon.className = "favIcon"
   streamIcon.setAttribute("style", "background-image: url(" + stream.favIconUrl + ");")
-  
-  streamIcon.addEventListener('click', () => {
-    chrome.tabs.update(stream.id, { 'active': true }, (tab) => { });
+
+
+  // See if there are any tabs open right now with this url...
+  chrome.tabs.query({url: stream.url}, result => {
+    let streamData;
+    if (result[0]) {
+      streamIsOpen = true;
+      streamData = result[0];
+      console.log(streamData)
+      //console.log(streamData.title, " is open now")
+    }
+
+    // If this stream is already open, clicking the track name should switch you to its tab
+    // Otherwise, open a new tab with the stream.
+    streamIcon.addEventListener('click', () => {
+      if (streamIsOpen === true) {
+        chrome.tabs.update(streamData.id, { 'active': true }, (tab) => { });
+      } else if (streamIsOpen === false) {
+        chrome.tabs.create({url: stream.url})
+      }
+    })
   })
 
   return streamIcon;
 }
 
-const streamTitle = (stream, message, tabId) => {
-  let streamTitle = document.createElement('div')
+const streamTitle = (stream, streams, tabId, clickToMute = true) => {
+  console.log(streams)
+  let streamTitle = document.createElement('div'),
+  streamIsOpen = false;
 
   streamTitle.innerText = stream.title
   streamTitle.title = stream.title
   streamTitle.className = "streamTitle"
 
-  streamTitle.addEventListener('click', () => {
+  if (clickToMute === true) {
+    streamTitle.addEventListener('click', () => {
 
-    message.streams.forEach(stream => {
+      streams.forEach(stream => {
 
-      // Mute everything except the stream we just clicked.
-      if (stream.id !== tabId) {
-        //console.log(stream.id)
-        chrome.tabs.update(stream.id, {muted: true});
-      } else if (stream.id === tabId) {
-        chrome.tabs.update(stream.id, {muted: false});
-      }
-      setTimeout(() => {location.reload()}, 200);
+        // Mute everything except the stream we just clicked.
+        if (stream.id !== tabId) {
+          //console.log(stream.id)
+          chrome.tabs.update(stream.id, {muted: true});
+        } else if (stream.id === tabId) {
+          chrome.tabs.update(stream.id, {muted: false});
+        }
+        setTimeout(() => {location.reload()}, 200);
+      })
     })
-  })
+  } else {
+    chrome.tabs.query({url: stream.url}, result => {
+      let streamData;
+      if (result[0]) {
+        streamIsOpen = true;
+        streamData = result[0];
+        console.log(streamData)
+        //console.log(streamData.title, " is open now")
+      }
+  
+      // If so, clicking the track name should switch you to that tab
+      streamTitle.addEventListener('click', () => {
+        if (streamIsOpen === true) {
+          chrome.tabs.update(streamData.id, { 'active': true }, (tab) => { });
+        } else if (streamIsOpen === false) {
+          chrome.tabs.create({url: stream.url})
+        }
+      })
+    })
+  }
 
   return streamTitle
 }
 
-const streamSpeaker = (stream, message, tabId) => {
+const streamSpeaker = (stream, streams, tabId) => {
   let streamState = document.createElement('div');
 
   streamState.className = "streamState"
@@ -160,7 +321,7 @@ const streamSpeaker = (stream, message, tabId) => {
   }
 
   streamState.addEventListener('click', () => {
-    message.streams.forEach(stream => {
+    streams.forEach(stream => {
       // Mute everything except the stream we just clicked.
       if (stream.id !== tabId) {
         //console.log(stream.id)
@@ -174,10 +335,4 @@ const streamSpeaker = (stream, message, tabId) => {
   })
 
   return streamState;
-}
-
-const getRandomInt = (min, max) => {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
 }

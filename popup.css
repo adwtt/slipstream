@@ -75,23 +75,36 @@ li:hover .streamTitle {
   text-align: center;
 }
 
-#Mute {
-  height: 40px;
-  //padding: 0 16px;
-  //margin-left: auto;
-
-
+#Actions {
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   background: #111;
-  color: #777;
 }
-  #Mute:hover {
+
+#Actions > div {
+  height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+}
+
+#Mute, #Save, #Load { 
+  color: #AACFCF; 
+  opacity: .75;
+}
+  #Mute.unmuted:hover,
+  #Save.unsaved:hover,
+  #Load:hover  {
     cursor: pointer;
-    color: #111;
-    background-color: #AACFCF;
+    opacity: 1;
+    text-decoration: underline;
+  }
+  #Mute.muted,
+  #Save.saved {
+    opacity: .5;
+    text-decoration: none;
   }
 
 #Quote {
@@ -101,3 +114,24 @@ li:hover .streamTitle {
   justify-content: center;
   align-items: center;
 }
+
+#SavedList {
+  margin: 4px 4px;
+  border-radius: 4px;
+  background: #333;
+}
+
+#SavedActions {
+  padding: 0 12px;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+  #SavedActions h3 {font-weight: 500;}
+
+  #SavedList li {
+    border-top: 1px solid #555;
+    border-bottom: none;
+  }

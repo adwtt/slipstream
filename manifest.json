@@ -10,7 +10,8 @@
     "128": "logo.png"
   },
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "browser_action": {
     "default_icon": { 
