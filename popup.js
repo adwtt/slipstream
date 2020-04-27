@@ -222,7 +222,7 @@ chrome.storage.sync.get(null, options => {
         // Compare the urls in our current streams and the stored streams, returns a bool based on whether everything matches
         //console.log(streams, JSON.parse(storedStreams))
         let match = null;
-        if (result.streamList.length > 0) {
+        if (storedStreams && storedStreams.length > 0) {
           if (streams.length === JSON.parse(storedStreams).length) {
             match = JSON.parse(storedStreams).every((stream, index) => stream && stream.url == streams[index].url)
           }
