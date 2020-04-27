@@ -411,7 +411,7 @@ chrome.storage.sync.get(null, options => {
 
     deleteStream.id = "DeleteStream"
 
-    deleteStream.innerText = "❌"
+    deleteStream.innerText = "🗑"
     deleteStream.title = "Delete"
 
 
