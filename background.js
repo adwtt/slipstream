@@ -1,6 +1,7 @@
 var streamList = [];
 
 // Figuring out how to persist extension state even when the background script goes inactive. When that happens today, the streamList gets lost completely. This drops the UI back into the "no streams" state when the user clocks to bring it up. Not great!
+
 // Luckily, this seems to fix it!
 chrome.storage.local.get("backgroundStreams", storage => {
   console.log(storage.backgroundStreams)
@@ -40,7 +41,7 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
       if (streamList.length > 0) {
         streamList = streamList.filter(stream => stream.id !== tab.id)
         console.log("Stream removed: ", streamList)
-        chrome.tabs.update(id, {pinned: false});
+        //chrome.tabs.update(id, {pinned: false});
         // If there's only one tab left, unmute it and refresh the streamList
         if (streamList.length == 1) {
 
@@ -55,7 +56,6 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
       let tabId = tab.id;
   
       chrome.tabs.query({audible: true}, tabs => {
-
         // If the user is viewing this newly audible tab, switch the audio
         if (tab.active === true) {
           tabs.forEach(tab => {
@@ -78,7 +78,9 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
               //console.log(stream.id)
               //chrome.tabs.update(tab.id, {muted: true});
             } else if (tab.id === tabId) {
-              chrome.tabs.update(tab.id, {muted: true});
+              chrome.storage.sync.get(["pinTabs"], options => {
+                chrome.tabs.update(tab.id, {muted: true, pinned: options.pinTabs});
+              })
             }
           })
         }
@@ -106,6 +108,13 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
       // If the update has something to do with muting, refresh our streamList array. The UI will reload after 200ms and check this updated array
       chrome.tabs.query({audible: true}, tabs => {      
         streamList = tabs.filter(tab => tab.audible === true);
+      })
+
+      // Then shoot the updated streamlist over to the UI.
+      chrome.runtime.onConnect.addListener(port => {
+        console.assert(port.name == "slipstream");
+        chrome.storage.local.set({backgroundStreams: JSON.stringify(streamList)});
+        port.postMessage({ streams: streamList});
       })
     }
     chrome.browserAction.setBadgeText({text: streamList.length.toString()});
