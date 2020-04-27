@@ -154,7 +154,7 @@ chrome.storage.sync.get(null, options => {
 
     // Load the saved playlist from sync storage
     chrome.storage.sync.get(['streamList'], result => {
-      if (result.streamList.length > 2) {
+      if (result.streamList && result.streamList.length > 2) {
         let streams = JSON.parse(result.streamList),
           list = document.createElement('ul');
 
