@@ -1,12 +1,26 @@
 var streamList = [];
 
+// Figuring out how to persist extension state even when the background script goes inactive. When that happens today, the streamList gets lost completely. This drops the UI back into the "no streams" state when the user clocks to bring it up. Not great!
+// Luckily, this seems to fix it!
+chrome.storage.local.get("backgroundStreams", storage => {
+  console.log(storage.backgroundStreams)
+  if (storage.backgroundStreams) {
+    streamList = JSON.parse(storage.backgroundStreams)
+  }
+});
+
 // This is where we initialize the extension, noting the number of tabs streaming audio at launch
 chrome.runtime.onInstalled.addListener((e) => {
+
+  chrome.storage.local.get("backgroundStreams", storage => {
+    console.log(storage.backgroundStreams)
+    if (storage.backgroundStreams) {
+      streamList = JSON.parse(storage.backgroundStreams)
+    }
+  });
   
   chrome.tabs.query({audible: true}, tabs => {
-    let streams = tabs.filter(tab => tab.audible === true);
-
-    streamList = streams;
+    streamList = tabs.filter(tab => tab.audible === true);
 
     chrome.browserAction.setBadgeBackgroundColor({color: '#000'});
     chrome.browserAction.setBadgeText({text: streamList.length.toString()});
@@ -31,9 +45,7 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
         if (streamList.length == 1) {
 
           chrome.tabs.query({audible: true}, tabs => {
-            let streams = tabs.filter(tab => tab.audible === true);
-        
-            streamList = streams;
+            streamList = tabs.filter(tab => tab.audible === true);
           })
         }
       }
@@ -78,6 +90,7 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
       // Then shoot the updated streamlist over to the UI.
       chrome.runtime.onConnect.addListener(port => {
         console.assert(port.name == "slipstream");
+        chrome.storage.local.set({backgroundStreams: JSON.stringify(streamList)});
         port.postMessage({ streams: streamList});
       })
     } 
@@ -105,6 +118,7 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
       streamList = tabs;
       chrome.runtime.onConnect.addListener(port => {
         console.assert(port.name == "slipstream");
+        chrome.storage.local.set({backgroundStreams: JSON.stringify(streamList)});
         port.postMessage({ streams: streamList});
       })
     })
@@ -136,6 +150,7 @@ chrome.tabs.onRemoved.addListener((id, removeInfo) => {
 chrome.runtime.onConnect.addListener(port => {
   console.assert(port.name == "slipstream");
 
+  chrome.storage.local.set({backgroundStreams: JSON.stringify(streamList)});
   port.postMessage({ streams: streamList});
   
   port.onMessage.addListener(message => {
