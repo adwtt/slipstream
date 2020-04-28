@@ -144,9 +144,13 @@ chrome.tabs.onRemoved.addListener((id, removeInfo) => {
     chrome.tabs.update(streamList[0].id, {muted: false});
 
     chrome.tabs.query({audible: true}, tabs => {
-      let streams = tabs.filter(tab => tab.audible === true);
-  
-      streamList = streams;
+      streamList = tabs.filter(tab => tab.audible === true);
+    })
+
+    chrome.runtime.onConnect.addListener(port => {
+      console.assert(port.name == "slipstream");
+      chrome.storage.local.set({backgroundStreams: JSON.stringify(streamList)});
+      port.postMessage({ streams: streamList});
     })
   }
 
