@@ -41,14 +41,14 @@ chrome.tabs.onUpdated.addListener((id, changeInfo, tab) => {
       if (streamList.length > 0) {
         streamList = streamList.filter(stream => stream.id !== tab.id)
         console.log("Stream removed: ", streamList)
-        //chrome.tabs.update(id, {pinned: false});
+
         // If there's only one tab left, unmute it and refresh the streamList
-        if (streamList.length == 1) {
+        /*if (streamList.length == 1) {
 
           chrome.tabs.query({audible: true}, tabs => {
             streamList = tabs.filter(tab => tab.audible === true);
           })
-        }
+        }*/
       }
     } 
     // Handle a tab becoming audible
@@ -140,7 +140,7 @@ chrome.tabs.onRemoved.addListener((id, removeInfo) => {
   streamList = streamList.filter(stream => stream.id !== id)
 
   // If there's only one tab left, unmute it and refresh the streamList
-  if (streamList.length == 1) {
+  /*if (streamList.length == 1) {
     chrome.tabs.update(streamList[0].id, {muted: false});
 
     chrome.tabs.query({audible: true}, tabs => {
@@ -153,8 +153,10 @@ chrome.tabs.onRemoved.addListener((id, removeInfo) => {
       port.postMessage({ streams: streamList});
     })
   }
+*/
 
-  // Update the browseraction icon info
+  // Update the localStorage and browseraction icon info
+  chrome.storage.local.set({backgroundStreams: JSON.stringify(streamList)});
   chrome.browserAction.setBadgeText({text: streamList.length.toString()});
 })
 
